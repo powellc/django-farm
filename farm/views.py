@@ -13,7 +13,7 @@ class BreedDetailView(DetailView):
     model = Breed
 
     def get_queryset(self, *args, **kwargs):
-        return Breed.objects.filter(species__slug=self.kwargs['species_slug'])
+        return Breed.objects.filter(genus__slug=self.kwargs['genus_slug'])
 
 class ProductDetailView(DetailView):
     model = Product
@@ -25,5 +25,5 @@ class AnimalDetailView(DetailView):
     model = Animal
 
     def get_queryset(self, *args, **kwargs):
-        return Animal.objects.filter(primary_breed__species__slug=self.kwargs['species_slug'], primary_breed__slug=self.kwargs['breed_slug'])
+        return Animal.objects.filter(primary_breed__genus__slug=self.kwargs['genus_slug'], primary_breed__slug=self.kwargs['breed_slug'])
 

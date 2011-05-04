@@ -4,15 +4,18 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
+
+from onec_utils.utils import unique_slugify
 from onec_utils.fields import CurrencyField
-from markup_mixin.models import MarkupMixin
 from onec_utils.models import USAddressPhoneMixin
-from django_extensions.db.models import TitleSlugDescriptionModel, TimeStampedModel
 from photologue.models import Photo
+from markup_mixin.models import MarkupMixin
+from django_extensions.db.models import TitleSlugDescriptionModel, TimeStampedModel
 from notes.models import Note
 from attributes.models import BaseAttribute, AttributeOption
+from uuidfield import UUIDField
 
-from farm.managers import OnTheFarmManager
+from farm.managers import OnTheFarmManager 
 
 class Farm(TitleSlugDescriptionModel, TimeStampedModel, USAddressPhoneMixin):
     """
@@ -20,7 +23,8 @@ class Farm(TitleSlugDescriptionModel, TimeStampedModel, USAddressPhoneMixin):
     
     Info about a farm
     """
-    current=models.BooleanField(_('Current'), default=False)
+    contact=models.CharField(_('Contact'), max_length=200, blank=True, null=True)
+    active=models.BooleanField(_('Active'), help_text='Is this your farm?', default=False)
         
     class Meta:
         verbose_name=_('Farm')
@@ -29,16 +33,17 @@ class Farm(TitleSlugDescriptionModel, TimeStampedModel, USAddressPhoneMixin):
     def __unicode__(self):
         return u'%s' % self.title
 
-class Species(TitleSlugDescriptionModel):
+class Genus(TitleSlugDescriptionModel):
     """
-    Species model class.
+    Genus model class.
     
-    Keeps track of the various species on a farm.
+    Keeps track of the various genus on a farm.
     """
+    technical_name=models.CharField(_('Technical title'), blank=True, null=True, max_length=200)
         
     class Meta:
-        verbose_name=_('species')
-        verbose_name_plural=_('species')
+        verbose_name=_('Genus')
+        verbose_name_plural=_('Genus')
   
     def __unicode__(self):
         return u'%s' % self.title
@@ -53,18 +58,18 @@ class Breed(TitleSlugDescriptionModel):
     
     Keeps track of the various breeds on a farm.
     """
-    species = models.ForeignKey(Species)
+    genus = models.ForeignKey(Genus)
         
     class Meta:
         verbose_name=_('Breed')
         verbose_name_plural=_('Breeds')
   
     def __unicode__(self):
-        return u'%s %s' % (self.title, self.species)
+        return u'%s %s' % (self.title, self.genus)
 
     @models.permalink
     def get_absolute_url(self):
-        return ('fm-breed-detail', None, {'slug': self.slug, 'species_slug': self.species.slug})
+        return ('fm-breed-detail', None, {'slug': self.slug, 'genus_slug': self.genus.slug})
         
 class RegistrationBody(TitleSlugDescriptionModel):
     breed = models.ForeignKey(Breed)
@@ -91,7 +96,7 @@ class SecondaryBreed(models.Model):
     def __unicode__(self):
         return u'%s (%s)' % (self.breed, self.percentage )
 
-class Animal(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
+class Animal(MarkupMixin, TimeStampedModel):
     """
     Animal model class.
     
@@ -101,38 +106,66 @@ class Animal(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
             ('M', 'Male'),
             ('F', 'Female'),]
 
+    uuid=UUIDField(auto=True, editable=True)
+    name = models.CharField(_('Name'), blank=True, null=True, max_length=255)
+    slug = models.SlugField(_('Slug'), blank=True)
     primary_breed = models.ForeignKey(Breed)
     mother = models.ForeignKey('self', related_name="mother_", blank=True, null=True)
     father = models.ForeignKey('self', related_name="father_", blank=True, null=True)
+    origin=models.ForeignKey(Farm, related_name='origin', blank=True, null=True)
+    one_off_origin=models.CharField(_('One-off origin'), blank=True, null=True, max_length=255)
+    location = models.ForeignKey(Farm, related_name='location', blank=True, null=True)
+    one_off_location=models.CharField(_('One-off location'), blank=True, null=True, max_length=255)
     birthday = models.DateField(_('Birthday'), blank=True, null=True)
     birthtime = models.TimeField(_('Birthtime'), blank=True, null=True)
     deathday = models.DateField(_('Deathday'), blank=True, null=True)
+    description = models.TextField(_('Description'), blank=True, null=True)
     rendered_description = models.TextField(_('Rendered description'), blank=True, null=True, editable=False)
     photos=models.ManyToManyField(Photo, blank=True, null=True)
     registered=models.BooleanField(_('Registered'), default=False)
-    on_farm=models.BooleanField(_('On farm?'), default=False)
     sex=models.CharField(_('Sex'), choices=SEX_CHOICES, default='f', max_length=1)
     notes=generic.GenericRelation(Note)
     secondary_breeds=generic.GenericRelation('SecondaryBreed')
         
     objects = models.Manager()
-    onthefarm = OnTheFarmManager()
+    onthefarm_objects = OnTheFarmManager()
 
     class Meta:
         verbose_name=_('Animal')
         verbose_name_plural=_('Animals')
-  
+
     class MarkupOptions:
         source_field = 'description'
         rendered_field = 'rendered_description'
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.slug = self.uuid
+        else:
+            unique_slugify(self, self.name)
+        super(Animal, self, *args, **kwargs).save()
         
     def __unicode__(self):
-        return u'%s - %s' % (self.title, self.primary_breed )
+        if self.name:
+            return u'%s a %s' % (self.name, self.primary_breed )
+        elif self.mother:
+            return u'%s from %s (ID: %s)' % (self.sex, self.mother.name, self.uuid[:10])
+        else:
+            return u'ID: %s - %s' % (self.uuid[:10], self.primary_breed)
 
     def __init__(self, *args, **kwargs):
         super (Animal, self).__init__(*args, **kwargs)
         self._mixed_breed = None
         self._registrations = None
+
+    @property
+    def display_name(self):
+        if self.name:
+            return self
+        elif self.mother:
+            return u'Unamed child of %s' %(self.mother.name)
+        else:
+            return u'Unamed %s' %(self.primary_breed)
 
     @property
     def registrations(self):
@@ -155,9 +188,18 @@ class Animal(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
             else:
                 return False
 
+    def father_of(self):
+        return Animal.onthefarm_objects.filter(father=self)
+
+    def mother_of(self):
+        return Animal.onthefarm_objects.filter(mother=self)
+
+    def progeny(self):
+        return Animal.onthefarm_objects.filter(models.Q(father=self)|models.Q(mother=self))
+
     @models.permalink
     def get_absolute_url(self):
-        return ('fm-animal-detail', None, {'slug': self.slug, 'breed_slug': self.primary_breed.slug, 'species_slug': self.primary_breed.species.slug})
+        return ('fm-animal-detail', None, {'slug': self.slug, 'breed_slug': self.primary_breed.slug, 'genus_slug': self.primary_breed.genus.slug})
 
 
 class AnimalAttributeOption(AttributeOption):
