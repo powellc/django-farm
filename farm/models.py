@@ -4,12 +4,13 @@ from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
 from django.contrib.auth.models import User
 from django.utils.translation import ugettext_lazy as _
-from myutils.fields import CurrencyField
-from myutils.models import MarkupMixin, USAddressPhoneMixin
+from onec_utils.fields import CurrencyField
+from markup_mixin.models import MarkupMixin
+from onec_utils.models import USAddressPhoneMixin
 from django_extensions.db.models import TitleSlugDescriptionModel, TimeStampedModel
 from photologue.models import Photo
 from notes.models import Note
-from attributes.models import BaseAttribute, BaseAttributeOption
+from attributes.models import BaseAttribute, AttributeOption
 
 from farm.managers import OnTheFarmManager
 
@@ -159,7 +160,7 @@ class Animal(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
         return ('fm-animal-detail', None, {'slug': self.slug, 'breed_slug': self.primary_breed.slug, 'species_slug': self.primary_breed.species.slug})
 
 
-class AnimalAttributeOption(BaseAttributeOption):
+class AnimalAttributeOption(AttributeOption):
 
     class Meta:
         verbose_name = _('Animal attribute options')
@@ -167,7 +168,6 @@ class AnimalAttributeOption(BaseAttributeOption):
 
 class AnimalAttribute(BaseAttribute):
     animal = models.ForeignKey(Animal)
-    option = models.ForeignKey(AnimalAttributeOption)
 
     class Meta:
         verbose_name = _('Animal attribute')
@@ -204,7 +204,7 @@ class ProductType(TitleSlugDescriptionModel):
     def get_absolute_url(self):
         return ('fm-product-type-detail', None, {'slug': self.slug})
         
-class ProductAttributeOption(BaseAttributeOption):
+class ProductAttributeOption(AttributeOption):
 
     class Meta:
         verbose_name = _('Product attribute options')
@@ -212,7 +212,6 @@ class ProductAttributeOption(BaseAttributeOption):
 
 class ProductAttribute(BaseAttribute):
     product = models.ForeignKey('Product')
-    option = models.ForeignKey(ProductAttributeOption)
 
     class Meta:
         verbose_name = _('Product attribute')
