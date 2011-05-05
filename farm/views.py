@@ -8,6 +8,7 @@ from django.core.urlresolvers import reverse
 from django.conf import settings
 
 from farm.models import Animal, Breed, Product
+from notes.forms import BriefNoteForm
 
 class BreedDetailView(DetailView):
     model = Breed
@@ -27,3 +28,7 @@ class AnimalDetailView(DetailView):
     def get_queryset(self, *args, **kwargs):
         return Animal.objects.filter(primary_breed__genus__slug=self.kwargs['genus_slug'], primary_breed__slug=self.kwargs['breed_slug'])
 
+    def get_context_data(self, **kwargs):
+        context = super(AnimalDetailView, self).get_context_data(**kwargs)
+        context['note_form'] = BriefNoteForm()
+        return context

@@ -1,4 +1,5 @@
-from datetime import *
+from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
@@ -15,6 +16,7 @@ from notes.models import Note
 from attributes.models import BaseAttribute, AttributeOption
 from uuidfield import UUIDField
 
+from farm.utils import get_fancy_time
 from farm.managers import OnTheFarmManager 
 
 class Farm(TitleSlugDescriptionModel, TimeStampedModel, USAddressPhoneMixin):
@@ -112,18 +114,18 @@ class Animal(MarkupMixin, TimeStampedModel):
     primary_breed = models.ForeignKey(Breed)
     mother = models.ForeignKey('self', related_name="mother_", blank=True, null=True)
     father = models.ForeignKey('self', related_name="father_", blank=True, null=True)
-    origin=models.ForeignKey(Farm, related_name='origin', blank=True, null=True)
-    one_off_origin=models.CharField(_('One-off origin'), blank=True, null=True, max_length=255)
-    location = models.ForeignKey(Farm, related_name='location', blank=True, null=True)
-    one_off_location=models.CharField(_('One-off location'), blank=True, null=True, max_length=255)
+    origin_farm=models.ForeignKey(Farm, related_name='origin_farm', blank=True, null=True)
+    alt_origin=models.CharField(_('Other origin'), blank=True, null=True, max_length=255)
+    current_farm = models.ForeignKey(Farm, related_name='current_farm', blank=True, null=True)
+    alt_location =models.CharField(_('Other location'), blank=True, null=True, max_length=255)
     birthday = models.DateField(_('Birthday'), blank=True, null=True)
     birthtime = models.TimeField(_('Birthtime'), blank=True, null=True)
     deathday = models.DateField(_('Deathday'), blank=True, null=True)
     description = models.TextField(_('Description'), blank=True, null=True)
     rendered_description = models.TextField(_('Rendered description'), blank=True, null=True, editable=False)
     photos=models.ManyToManyField(Photo, blank=True, null=True)
-    registered=models.BooleanField(_('Registered'), default=False)
     sex=models.CharField(_('Sex'), choices=SEX_CHOICES, default='f', max_length=1)
+
     notes=generic.GenericRelation(Note)
     secondary_breeds=generic.GenericRelation('SecondaryBreed')
         
@@ -157,21 +159,32 @@ class Animal(MarkupMixin, TimeStampedModel):
         super (Animal, self).__init__(*args, **kwargs)
         self._mixed_breed = None
         self._registrations = None
+        self._births = []
+        self._age = None
 
     @property
     def display_name(self):
         if self.name:
-            return self
+            return self.name
         elif self.mother:
-            return u'Unamed child of %s' %(self.mother.name)
+            return u'Unnamed child of %s' %(self.mother.name)
         else:
-            return u'Unamed %s' %(self.primary_breed)
+            return u'Unnamed %s' %(self.primary_breed)
 
     @property
     def registrations(self):
         if not self._registrations:
             self._registrations = self.registration_set.all()
         return self._registrations
+
+    @property
+    def age(self):
+        if not self._age:
+            if self.birthday:
+                if self.deathday: DELTA=self.deathday
+                else: DELTA=datetime.now()
+                self._age = get_fancy_time(relativedelta(DELTA, self.birthday), True)
+        return self._age
 
     @property
     def breed(self):
@@ -188,6 +201,16 @@ class Animal(MarkupMixin, TimeStampedModel):
             else:
                 return False
 
+    @property
+    def location(self):
+        if self.current_farm: return self.current_farm
+        else: return self.alt_location
+
+    @property
+    def origin(self):
+        if self.origin_farm: return self.origin_farm
+        else: return self.alt_origin
+
     def father_of(self):
         return Animal.onthefarm_objects.filter(father=self)
 
@@ -196,6 +219,19 @@ class Animal(MarkupMixin, TimeStampedModel):
 
     def progeny(self):
         return Animal.onthefarm_objects.filter(models.Q(father=self)|models.Q(mother=self))
+
+    def births(self):
+        delta = timedelta(days=3)
+        if not self._births:
+            for p in self.progeny():
+                if not p.birthday in self._births:
+                    recorded=False
+                    for b in self._births:
+                        if b+delta >  p.birthday > b-delta:
+                            recorded=True
+                    if not recorded:
+                        self._births.append(p.birthday)
+        return self._births
 
     @models.permalink
     def get_absolute_url(self):
