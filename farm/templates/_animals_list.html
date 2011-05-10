@@ -1,0 +1,11 @@
+
+{% for a in animals %}
+<dl>
+    <dt>{{a.title}}</dt>
+    <dd>{{a.breed}}</dt>
+    <dd>{{a.sex.get_display_name}}</dd>
+    {% for n in a.notes.all %}
+    <dd><strong>{{n.date|naturalday}}</strong>{{n.rendered_content|typogrify}}</dd>
+    {% endfor %}
+</dl>
+{% endfor %}
