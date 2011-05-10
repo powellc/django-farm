@@ -17,6 +17,9 @@ class AnimalAttributeInline(admin.TabularInline):
     model = AnimalAttribute
     #form = AnimalAttributeInlineForm
 
+class AnimalInline(admin.TabularInline):
+    model = Animal
+
 class ProductAttributeInline(admin.TabularInline):
     model = ProductAttribute
 
@@ -24,7 +27,7 @@ class SecondaryBreedInline(generic.GenericTabularInline):
     model = SecondaryBreed
 
 class AnimalAdmin(admin.ModelAdmin):
-    inlines = [ AnimalAttributeInline, SecondaryBreedInline, NoteInline, ]
+    inlines = [ AnimalAttributeInline, SecondaryBreedInline, ]
 
 class ProductAdmin(admin.ModelAdmin):
     inlines = [ ProductAttributeInline, NoteInline, ]

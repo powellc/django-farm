@@ -41,7 +41,9 @@ class Genus(TitleSlugDescriptionModel):
     
     Keeps track of the various genus on a farm.
     """
+    plural_name=models.CharField(_('Plural name'), help_text="Only use if adding an 's' does not work.", blank=True, null=True, max_length=200)
     technical_name=models.CharField(_('Technical title'), blank=True, null=True, max_length=200)
+    
         
     class Meta:
         verbose_name=_('Genus')
@@ -52,7 +54,12 @@ class Genus(TitleSlugDescriptionModel):
 
     @models.permalink
     def get_absolute_url(self):
-        return ('fm-breed-detail', None, {'slug': self.slug})
+        return ('fm-genus-detail', None, {'slug': self.slug})
+
+    @property
+    def plural_title(self):
+        if self.plural_name: return self.plural_name
+        else: return self.title + 's'
         
 class Breed(TitleSlugDescriptionModel):
     """
@@ -112,12 +119,12 @@ class Animal(MarkupMixin, TimeStampedModel):
     name = models.CharField(_('Name'), blank=True, null=True, max_length=255)
     slug = models.SlugField(_('Slug'), blank=True)
     primary_breed = models.ForeignKey(Breed)
-    mother = models.ForeignKey('self', related_name="mother_", blank=True, null=True)
-    father = models.ForeignKey('self', related_name="father_", blank=True, null=True)
-    origin_farm=models.ForeignKey(Farm, related_name='origin_farm', blank=True, null=True)
-    alt_origin=models.CharField(_('Other origin'), blank=True, null=True, max_length=255)
-    current_farm = models.ForeignKey(Farm, related_name='current_farm', blank=True, null=True)
-    alt_location =models.CharField(_('Other location'), blank=True, null=True, max_length=255)
+    dam = models.ForeignKey('self', related_name="dam_", blank=True, null=True)
+    sire = models.ForeignKey('self', related_name="sire_", blank=True, null=True)
+    breeder_farm=models.ForeignKey(Farm, related_name='breeder_farm', blank=True, null=True)
+    alt_breeder=models.CharField(_('Other breeder'), blank=True, null=True, max_length=255)
+    owner_farm= models.ForeignKey(Farm, related_name='owner_farm', blank=True, null=True)
+    alt_owner=models.CharField(_('Other owner'), blank=True, null=True, max_length=255)
     birthday = models.DateField(_('Birthday'), blank=True, null=True)
     birthtime = models.TimeField(_('Birthtime'), blank=True, null=True)
     deathday = models.DateField(_('Deathday'), blank=True, null=True)
@@ -141,17 +148,20 @@ class Animal(MarkupMixin, TimeStampedModel):
         rendered_field = 'rendered_description'
 
     def save(self, *args, **kwargs):
+        super(Animal, self).save(*args, **kwargs)
+
         if not self.name:
             self.slug = self.uuid
         else:
             unique_slugify(self, self.name)
-        super(Animal, self, *args, **kwargs).save()
+
+        super(Animal, self).save()
         
     def __unicode__(self):
         if self.name:
             return u'%s a %s' % (self.name, self.primary_breed )
-        elif self.mother:
-            return u'%s from %s (ID: %s)' % (self.sex, self.mother.name, self.uuid[:10])
+        elif self.dam:
+            return u'%s from %s (ID: %s)' % (self.sex, self.dam.name, self.uuid[:10])
         else:
             return u'ID: %s - %s' % (self.uuid[:10], self.primary_breed)
 
@@ -166,8 +176,8 @@ class Animal(MarkupMixin, TimeStampedModel):
     def display_name(self):
         if self.name:
             return self.name
-        elif self.mother:
-            return u'Unnamed child of %s' %(self.mother.name)
+        elif self.dam:
+            return u'Unnamed child of %s' %(self.dam.name)
         else:
             return u'Unnamed %s' %(self.primary_breed)
 
@@ -211,14 +221,14 @@ class Animal(MarkupMixin, TimeStampedModel):
         if self.origin_farm: return self.origin_farm
         else: return self.alt_origin
 
-    def father_of(self):
-        return Animal.onthefarm_objects.filter(father=self)
+    def sire_of(self):
+        return Animal.onthefarm_objects.filter(sire=self)
 
-    def mother_of(self):
-        return Animal.onthefarm_objects.filter(mother=self)
+    def dam_of(self):
+        return Animal.onthefarm_objects.filter(dam=self)
 
     def progeny(self):
-        return Animal.onthefarm_objects.filter(models.Q(father=self)|models.Q(mother=self))
+        return Animal.onthefarm_objects.filter(models.Q(sire=self)|models.Q(dam=self))
 
     def births(self):
         delta = timedelta(days=3)
