@@ -278,11 +278,15 @@ class AnimalAttributeOption(AttributeOption):
         verbose_name_plural = _('Animal attribute options')
 
 class AnimalAttribute(BaseAttribute):
+    option = models.ForeignKey(AnimalAttributeOption)
     animal = models.ForeignKey(Animal)
 
     class Meta:
         verbose_name = _('Animal attribute')
         verbose_name_plural = _('Animal attributes')
+
+    def __unicode__(self):
+        return u'%s attribute of %s' %(self.option, self.animal.display_name)
 
 class AnimalRegistration(models.Model):
     animal = models.ForeignKey(Animal)

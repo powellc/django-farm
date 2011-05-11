@@ -17,9 +17,6 @@ class AnimalAttributeInline(admin.TabularInline):
     model = AnimalAttribute
     #form = AnimalAttributeInlineForm
 
-class AnimalInline(admin.TabularInline):
-    model = Animal
-
 class ProductAttributeInline(admin.TabularInline):
     model = ProductAttribute
 
@@ -38,5 +35,6 @@ admin.site.register(Genus)
 admin.site.register(Breed)
 admin.site.register(Product, ProductAdmin)
 admin.site.register(ProductType)
+admin.site.register(AnimalAttribute)
 admin.site.register(AnimalAttributeOption)
 admin.site.register(ProductAttributeOption)
