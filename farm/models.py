@@ -170,6 +170,7 @@ class Animal(MarkupMixin, TimeStampedModel):
         self._mixed_breed = None
         self._registrations = None
         self._births = []
+        self._litters = {}
         self._age = None
 
     @property
@@ -230,8 +231,16 @@ class Animal(MarkupMixin, TimeStampedModel):
     def progeny(self):
         return Animal.onthefarm_objects.filter(models.Q(sire=self)|models.Q(dam=self))
 
+    def birthed_progeny(self):
+        return Animal.objects.filter(models.Q(sire=self)|models.Q(dam=self))
+
+    def lost_progeny(self):
+        return Animal.objects.filter(models.Q(sire=self)|models.Q(dam=self)).filter(owner_farm__active=True).filter(deathday__isnull=False)
+
     def births(self):
-        delta = timedelta(days=3)
+    # Set the threshold for when births are consider contiguous
+    # Some animals can go hours between births, leading into the next day easily
+        delta = timedelta(days=1)
         if not self._births:
             for p in self.progeny():
                 if not p.birthday in self._births:
@@ -242,6 +251,20 @@ class Animal(MarkupMixin, TimeStampedModel):
                     if not recorded:
                         self._births.append(p.birthday)
         return self._births
+
+    def litters(self):
+    # Set the threshold for when births are consider contiguous
+    # Some animals can go hours between births, leading into the next day easily
+        delta = timedelta(days=1)
+        if not self._litters:
+            for b in self.births():
+                p_collection=[]
+                for p in self.birthed_progeny():
+                    if b+delta > p.birthday > b-delta:
+                        p_collection.append(p)
+                self._litters[b]=p_collection
+        return self._litters
+
 
     @models.permalink
     def get_absolute_url(self):
