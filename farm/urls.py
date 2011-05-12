@@ -16,4 +16,10 @@ urlpatterns = patterns('',
     url(r'^products/$', view=ListView.as_view(model=Product), name="fm-product-list"),
     url(r'^products/(?P<slug>[-\w]+)/$', view=DetailView.as_view(model=ProductType), name="fm-product-type-detail"),
     url(r'^products/(?P<type_slug>[-\w]+)/(?P<slug>[-\w]+)/$', view=ProductDetailView.as_view(), name="fm-product-detail"),
+
+    url(r'^buildings/$', view=ListView.as_view(model=Building), name="fm-building-list"),
+    url(r'^buildings/(?P<slug>[-\w]+)/$', view=DetailView.as_view(model=Building), name="fm-building-detail"),
+
+    url(r'^fields/$', view=ListView.as_view(model=Building), name="fm-building-list"),
+    url(r'^fields/(?P<slug>[-\w]+)/$', view=DetailView.as_view(model=Building), name="fm-building-detail"),
 )

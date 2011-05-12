@@ -349,3 +349,135 @@ class Product(TitleSlugDescriptionModel, TimeStampedModel):
     @models.permalink
     def get_absolute_url(self):
         return ('fm-product-detail', None, {'slug': self.slug, 'type_slug': self.type.slug})
+
+class BuildingType(TitleSlugDescriptionModel):
+    """
+    Building Type model class.
+    
+    Keeps track of the various building types on a farm, such as animal,
+    storage, derelict, plants, etc...
+    """
+        
+    class Meta:
+        verbose_name=_('Building type')
+        verbose_name_plural=_('Building types')
+  
+    def __unicode__(self):
+        return u'%s' % self.title
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('fm-building-type-detail', None, {'slug': self.slug})
+
+class Building(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
+    farm=models.ForigneKey(Farm)
+    built-models.DateField(_('Built'), blank=True, null=True)
+    type=models.ForeignKey(BuildingType, blank=True, null=True)
+    photos=models.ManyToManyField(Photo, blank=True, null=True)
+    rendered_description=models.TextField(_('Rendered description'), blank=True, null=True, editable=False)
+
+    class Meta:
+        verbose_name=_('Building')
+        verbose_name_plural=_('Buildings')
+
+    class MarkupOptions:
+        source_field = 'description'
+        rendered_field = 'rendered_description'
+  
+    def __unicode__(self):
+        return u'%s' % self.title
+
+    def __init__(self, *args, **kwargs):
+        super (Building, self).__init__(*args, **kwargs)
+        self._age = None
+        
+    @property
+    def age(self):
+        if not self._age:
+            if self.built:
+                DELTA=datetime.now()
+                self._age = get_fancy_time(relativedelta(DELTA, self.built), True)
+            else self._age = "Unknown"
+        return self._age
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('fm-building-detail', None, {'slug': self.slug})
+
+class BuildingAttributeOption(AttributeOption):
+
+    class Meta:
+        verbose_name = _('Building attribute options')
+        verbose_name_plural = _('Building attribute options')
+
+class BuildingAttribute(BaseAttribute):
+    option = models.ForeignKey(BuildingAttributeOption)
+    building = models.ForeignKey(Building)
+
+    class Meta:
+        verbose_name = _('Building attribute')
+        verbose_name_plural = _('Building attributes')
+
+    def __unicode__(self):
+        return u'%s attribute of %s' %(self.option, self.building.title)
+
+class FieldType(TitleSlugDescriptionModel):
+    """
+    Field Type model class.
+    
+    Keeps track of the various field types on a farm, such as pasture, garden,
+    grain, etc...
+    """
+        
+    class Meta:
+        verbose_name=_('Field type')
+        verbose_name_plural=_('Field types')
+  
+    def __unicode__(self):
+        return u'%s' % self.title
+
+    @models.permalink
+    def get_absolute_url(self):
+        return ('fm-field-type-detail', None, {'slug': self.slug})
+
+class Field(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
+    farm=models.ForigneKey(Farm)
+    built-models.DateField(_('Built'), blank=True, null=True)
+    type=models.ForeignKey(BuildingType, blank=True, null=True)
+    photos=models.ManyToManyField(Photo, blank=True, null=True)
+    rendered_description=models.TextField(_('Rendered description'), blank=True, null=True, editable=False)
+
+    class Meta:
+        verbose_name=_('Field')
+        verbose_name_plural=_('Fields')
+
+    class MarkupOptions:
+        source_field = 'description'
+        rendered_field = 'rendered_description'
+  
+    def __unicode__(self):
+        return u'%s' % self.title
+
+    def __init__(self, *args, **kwargs):
+        super (Field, self).__init__(*args, **kwargs)
+        
+    @models.permalink
+    def get_absolute_url(self):
+        return ('fm-field-detail', None, {'slug': self.slug})
+
+class FieldAttributeOption(AttributeOption):
+
+    class Meta:
+        verbose_name = _('Field attribute options')
+        verbose_name_plural = _('Field attribute options')
+
+class FieldAttribute(BaseAttribute):
+    option = models.ForeignKey(FieldAttributeOption)
+    field = models.ForeignKey(Field)
+
+    class Meta:
+        verbose_name = _('Field attribute')
+        verbose_name_plural = _('Field attributes')
+
+    def __unicode__(self):
+        return u'%s attribute of %s' %(self.option, self.field.title)
