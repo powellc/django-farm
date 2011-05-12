@@ -370,8 +370,8 @@ class BuildingType(TitleSlugDescriptionModel):
         return ('fm-building-type-detail', None, {'slug': self.slug})
 
 class Building(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
-    farm=models.ForigneKey(Farm)
-    built-models.DateField(_('Built'), blank=True, null=True)
+    farm=models.ForeignKey(Farm)
+    built=models.DateField(_('Built'), blank=True, null=True)
     type=models.ForeignKey(BuildingType, blank=True, null=True)
     photos=models.ManyToManyField(Photo, blank=True, null=True)
     rendered_description=models.TextField(_('Rendered description'), blank=True, null=True, editable=False)
@@ -441,9 +441,8 @@ class FieldType(TitleSlugDescriptionModel):
         return ('fm-field-type-detail', None, {'slug': self.slug})
 
 class Field(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
-    farm=models.ForigneKey(Farm)
-    built-models.DateField(_('Built'), blank=True, null=True)
-    type=models.ForeignKey(BuildingType, blank=True, null=True)
+    farm=models.ForeignKey(Farm)
+    type=models.ForeignKey(FieldType, blank=True, null=True)
     photos=models.ManyToManyField(Photo, blank=True, null=True)
     rendered_description=models.TextField(_('Rendered description'), blank=True, null=True, editable=False)
 
