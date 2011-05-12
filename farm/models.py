@@ -397,7 +397,7 @@ class Building(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
             if self.built:
                 DELTA=datetime.now()
                 self._age = get_fancy_time(relativedelta(DELTA, self.built), True)
-            else self._age = "Unknown"
+            else: self._age = "Unknown"
         return self._age
 
     @models.permalink
