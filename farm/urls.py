@@ -19,7 +19,7 @@ urlpatterns = patterns('',
 
     url(r'^buildings/$', view=ListView.as_view(model=Building), name="fm-building-list"),
     url(r'^buildings/(?P<slug>[-\w]+)/$', view=DetailView.as_view(model=Building), name="fm-building-detail"),
-    url(r'^buildings/(?P<building-slug>[-\w]+)/(?P<slug>[-\w]+)/$', view=DetailView.as_view(model=BuildingSpace), name="fm-building-space-detail"),
+    url(r'^buildings/(?P<building_slug>[-\w]+)/(?P<slug>[-\w]+)/$', view=DetailView.as_view(model=BuildingSpace), name="fm-building-space-detail"),
 
     url(r'^fields/$', view=ListView.as_view(model=Field), name="fm-field-list"),
     url(r'^fields/(?P<slug>[-\w]+)/$', view=DetailView.as_view(model=Field), name="fm-field-detail"),
