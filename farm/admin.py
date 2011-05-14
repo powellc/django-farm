@@ -3,7 +3,7 @@ from django.forms import models, ValidationError
 from django.contrib import admin
 from django.contrib.contenttypes import generic
 
-from farm.models import Farm, Genus, Breed, Animal, Product, ProductType, Note, SecondaryBreed, AnimalAttribute, AnimalAttributeOption, ProductAttribute, ProductAttributeOption
+from farm.models import Farm, Genus, Breed, Animal, Product, ProductType, Note, SecondaryBreed, AnimalAttribute, AnimalAttributeOption, ProductAttribute, ProductAttributeOption, Building, Field, BuildingAttribute, FieldAttribute, BuildingAttributeOption, FieldAttributeOption
 from notes.admin import NoteInline
 from attributes.admin import clean_attribute_value
 
@@ -38,3 +38,9 @@ admin.site.register(ProductType)
 admin.site.register(AnimalAttribute)
 admin.site.register(AnimalAttributeOption)
 admin.site.register(ProductAttributeOption)
+admin.site.register(Building)
+admin.site.register(Field)
+admin.site.register(BuildingAttribute)
+admin.site.register(FieldAttribute)
+admin.site.register(BuildingAttributeOption)
+admin.site.register(FieldAttributeOption)
