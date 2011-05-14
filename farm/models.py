@@ -350,29 +350,9 @@ class Product(TitleSlugDescriptionModel, TimeStampedModel):
     def get_absolute_url(self):
         return ('fm-product-detail', None, {'slug': self.slug, 'type_slug': self.type.slug})
 
-class BuildingType(TitleSlugDescriptionModel):
-    """
-    Building Type model class.
-    
-    Keeps track of the various building types on a farm, such as animal,
-    storage, derelict, plants, etc...
-    """
-        
-    class Meta:
-        verbose_name=_('Building type')
-        verbose_name_plural=_('Building types')
-  
-    def __unicode__(self):
-        return u'%s' % self.title
-
-    @models.permalink
-    def get_absolute_url(self):
-        return ('fm-building-type-detail', None, {'slug': self.slug})
-
 class Building(MarkupMixin, TitleSlugDescriptionModel, TimeStampedModel):
     farm=models.ForeignKey(Farm)
     built=models.DateField(_('Built'), blank=True, null=True)
-    type=models.ForeignKey(BuildingType, blank=True, null=True)
     photos=models.ManyToManyField(Photo, blank=True, null=True)
     rendered_description=models.TextField(_('Rendered description'), blank=True, null=True, editable=False)
 
@@ -420,6 +400,31 @@ class BuildingAttribute(BaseAttribute):
 
     def __unicode__(self):
         return u'%s attribute of %s' %(self.option, self.building.title)
+
+class BuildingSpace(MarkupMixin, TitleSlugDescriptionModel):
+    """
+    Bulding Space model class.
+
+    Keeps track of the various spaces in a bulding (rooms, lofts, corners
+    etc...)
+    """
+    building=models.ForeignKey(Building)
+    photos = models.ManyToManyField(Photo, blank=True, null=True)
+    rendered_description=models.TextField(_('Rendered description'), blank=True, null=True)
+
+    class Meta:
+        verbose_name=_('Building space')
+        verbose_name_plural=_('Building spaces')
+
+    class MarkupOptions:
+        source_field = 'description'
+        rendered_field = 'rendered_description'
+  
+    def __unicode__(self):
+        return u'%s' % self.title
+
+    def __init__(self, *args, **kwargs):
+        super (BuildingSpace, self).__init__(*args, **kwargs)
 
 class FieldType(TitleSlugDescriptionModel):
     """
