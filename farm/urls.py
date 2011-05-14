@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls.defaults import *
 from django.views.generic import DetailView, ListView
 from farm.views import BreedDetailView, AnimalDetailView, ProductDetailView
-from farm.models import Animal, Genus, Breed, Product, ProductType, RegistrationBody, AnimalRegistration, Building, Field
+from farm.models import Animal, Genus, Breed, Product, ProductType, RegistrationBody, AnimalRegistration, Building, BuildingSpace, Field
 
 
 # custom views vendors
