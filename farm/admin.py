@@ -24,6 +24,8 @@ class SecondaryBreedInline(generic.GenericTabularInline):
     model = SecondaryBreed
 
 class AnimalAdmin(admin.ModelAdmin):
+    list_filter = ('owner_farm', 'breeder_farm', 'alt_owner', 'alt_breeder', )
+    list_display = ('sex', 'name', 'dam', 'birthday', 'primary_breed',)
     inlines = [ AnimalAttributeInline, SecondaryBreedInline, NoteInline, ]
 
 class ProductAdmin(admin.ModelAdmin):

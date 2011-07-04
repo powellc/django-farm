@@ -214,13 +214,13 @@ class Animal(MarkupMixin, TimeStampedModel):
 
     @property
     def location(self):
-        if self.current_farm: return self.current_farm
-        else: return self.alt_location
+        if self.owner_farm: return self.owner_farm
+        else: return self.alt_owner
 
     @property
     def origin(self):
-        if self.origin_farm: return self.origin_farm
-        else: return self.alt_origin
+        if self.breeder_farm: return self.breeder_farm
+        else: return self.alt_breeder
 
     def sire_of(self):
         return Animal.onthefarm_objects.filter(sire=self)
