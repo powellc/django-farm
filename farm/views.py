@@ -41,7 +41,7 @@ class AnimalDetailView(DetailView):
         # Next, try looking up by slug.
         elif slug_or_uuid is not None:
             try:
-                obj = queryset.get(uuid=slug_or_uuid)
+                obj = queryset.filter(uuid__contains=slug_or_uuid)[0]
             except:
                 try:
                     obj = queryset.get(slug=slug_or_uuid)
