@@ -272,7 +272,7 @@ class Animal(MarkupMixin, TimeStampedModel):
 
 UNIT_CHOICES = ( ('g', 'gallons'), ('l', 'liters' ), ('cl', 'centiliters'), ('ml', 'mililiters'), ('pt', 'pints'), ('oz', 'ounces') )
 
-class Milking(TimeStampedModel)
+class Milking(TimeStampedModel):
     animal = models.ForeignKey(Animal)
     milking_time = models.DateTimeField(_('Milking time'))
     quantity = models.IntegerField(_('Quantity'))
