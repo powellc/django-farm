@@ -8,7 +8,7 @@ from django.template import RequestContext
 from django.core.urlresolvers import reverse
 from django.conf import settings
 
-from farm.models import Animal, Breed, Product
+from farm.models import Animal, Breed, Product, Milking
 from notes.forms import BriefNoteForm
 
 class BreedDetailView(DetailView):
@@ -22,6 +22,20 @@ class ProductDetailView(DetailView):
 
     def get_queryset(self, *args, **kwargs):
         return Product.objects.filter(type__slug=self.kwargs['type_slug'])
+
+class MilkingListView(ListView):
+    model = Animal
+
+    def get_queryset(self, *args, **kwargs):
+        try:
+            animal = Animal.objects.get(self.kwargs.get('slug', None))
+            qs = Milking.objects.filter(animal__primary_breed__genus__slug=self.kwargs['genus_slug'], animal__primary_breed__slug=self.kwargs['breed_slug'], animal__slug=self.kwargs['slug'])
+        except:
+            try:
+                qs = Milking.objects.filter(animal__primary_breed__genus__slug=self.kwargs['genus_slug'], animal__primary_breed__slug=self.kwargs['breed_slug'], animal__uuid__contains=self.kwargs['slug'])
+            except:
+                qs = None
+        return qs
 
 class AnimalDetailView(DetailView):
     model = Animal

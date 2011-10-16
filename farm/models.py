@@ -270,6 +270,21 @@ class Animal(MarkupMixin, TimeStampedModel):
     def get_absolute_url(self):
         return ('fm-animal-detail', None, {'slug': self.slug, 'breed_slug': self.primary_breed.slug, 'genus_slug': self.primary_breed.genus.slug})
 
+UNIT_CHOICES = ( ('g', 'gallons'), ('l', 'liters' ), ('cl', 'centiliters'), ('ml', 'mililiters'), ('pt', 'pints'), ('oz', 'ounces') )
+
+class Milking(TimeStampedModel)
+    animal = models.ForeignKey(Animal)
+    milking_time = models.DateTimeField(_('Milking time'))
+    quantity = models.IntegerField(_('Quantity'))
+    units = models.CharField(_('Units'), choices=UNIT_CHOICES, max_length=2, default='ml')
+    notes=generic.GenericRelation(Note)
+
+    class Meta:
+        verbose_name = _('Milking')
+        verbose_name_plural = _('Milkings')
+
+    def __unicode__(self):
+        return u'Milking on %s of %s' %(self.milking_time, self.animal.display_name)
 
 class AnimalAttributeOption(AttributeOption):
 

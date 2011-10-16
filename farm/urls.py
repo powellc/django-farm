@@ -12,6 +12,7 @@ urlpatterns = patterns('',
 	url(r'^animals/(?P<slug>[-\w]+)/$', view=DetailView.as_view(model=Genus), name="fm-genus-detail"),
 	url(r'^animals/(?P<genus_slug>[-\w]+)/(?P<slug>[-\w]+)/$', view=BreedDetailView.as_view(), name="fm-breed-detail"),
 	url(r'^animals/(?P<genus_slug>[-\w]+)/(?P<breed_slug>[-\w]+)/(?P<slug>[-\w]+)/$', view=AnimalDetailView.as_view(), name="fm-animal-detail"),
+	url(r'^animals/(?P<genus_slug>[-\w]+)/(?P<breed_slug>[-\w]+)/(?P<slug>[-\w]+)/milkings/$', view=MilkingListView.as_view(), name="fm-milking-detail"),
 
     url(r'^products/$', view=ListView.as_view(model=Product), name="fm-product-list"),
     url(r'^products/(?P<slug>[-\w]+)/$', view=DetailView.as_view(model=ProductType), name="fm-product-type-detail"),
